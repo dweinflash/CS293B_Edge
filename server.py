@@ -37,10 +37,16 @@ def classify_image(interpreter, image, top_k=1):
   return [(i, output[i]) for i in ordered[:top_k]]
 
 
-def run_classify():
+def run_classify(model):
+
+  # EfficientNet - Rock, Paper, Scissors custom dataset
+  if (model == "rps"):
+    labels = load_labels("labels_EfficientNet_rps.txt")
+    interpreter = Interpreter("model_EfficientNet_rps.tflite")
   # MobileNet - ImageNet
-  labels = load_labels("labels_mobilenet_quant_v1_224.txt")
-  interpreter = Interpreter("mobilenet_v1_1.0_224_quant.tflite")
+  else:
+    labels = load_labels("labels_mobilenet_quant_v1_224.txt")
+    interpreter = Interpreter("mobilenet_v1_1.0_224_quant.tflite")
 
   interpreter.allocate_tensors()
   _, height, width, _ = interpreter.get_input_details()[0]['shape']
@@ -65,8 +71,12 @@ def main():
     # Handle 'Classify' and 'Exit' requests
     while True:
         data = conn.recv(5)
-        if (str(data.decode()) == 'class'):
-            res = run_classify()
+        if (str(data.decode()) == 'clas0'):
+            res = run_classify("rps")
+            print(res)
+            conn.sendall(res.encode())
+        elif (str(data.decode()) == 'clas1'):
+            res = run_classify("ImageNet")
             print(res)
             conn.sendall(res.encode())
         elif (str(data.decode()) == "exit!"):
